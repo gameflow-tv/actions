@@ -2,10 +2,6 @@ name: Deploy
 on:
   workflow_call:
     secrets:
-      registry_org:
-        required: true
-        description: Organization/path to use for deployment
-
       service_account:
         required: true
         description: Service account to use for deployment
@@ -36,7 +32,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ secrets.registry_org }}
+          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
 
       - run: gcloud auth configure-docker -q
 
@@ -46,7 +42,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.GCLOUD_PROJECT_ID }}/${{ inputs.image_name }}
           tags: |
             type=sha
           flavor: |
@@ -72,7 +68,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ secrets.registry_org }}
+          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
 
       - run: gcloud auth configure-docker -q
 
@@ -82,7 +78,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.GCLOUD_PROJECT_ID }}/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{raw}}
           flavor: |
@@ -107,7 +103,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ secrets.registry_org }}
+          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
 
       - run: gcloud auth configure-docker -q
 
@@ -117,7 +113,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.GCLOUD_PROJECT_ID }}/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{raw}}
           flavor: |
