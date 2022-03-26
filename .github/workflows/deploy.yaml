@@ -18,8 +18,14 @@ on:
         default: eu.gcr.io
         description: Registry to use for deployment
 
+      registry_org:
+        required: true
+        type: string
+        description: Registry organization/path to use for deployment
+
 jobs:
   development:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: development
@@ -31,7 +37,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
+          project_id: ${{ inputs.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -41,7 +47,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ secrets.GCLOUD_PROJECT_ID }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
           tags: |
             type=sha
           flavor: |
@@ -67,7 +73,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
+          project_id: ${{ inputs.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -77,7 +83,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ secrets.GCLOUD_PROJECT_ID }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{raw}}
           flavor: |
@@ -102,7 +108,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
+          project_id: ${{ inputs.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -112,7 +118,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ secrets.GCLOUD_PROJECT_ID }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{raw}}
           flavor: |
