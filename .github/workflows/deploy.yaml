@@ -2,18 +2,26 @@ name: Deploy
 on:
   workflow_call:
     inputs:
-      image_name:
-        required: true
+      service_account:
         type: string
+        required: true
+        description: Service account to use for deployment
+
+      image_name:
+        type: string
+        required: true
+        description: Name of the image to deploy
 
       registry:
         required: false
         type: string
         default: eu.gcr.io
+        description: Registry to use for deployment
 
       registry_org:
         required: true
         type: string
+        description: Organization/path to use for deployment
 
 jobs:
   deploy_to_development:
@@ -24,6 +32,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ inputs.service_account }}
+          project_id: ${{ inputs.registry_org }}
+
+      - run: gcloud auth configure-docker -q
 
       - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
 
@@ -53,6 +68,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ inputs.service_account }}
+          project_id: ${{ inputs.registry_org }}
+
+      - run: gcloud auth configure-docker -q
+
       - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
 
       - name: Docker meta
@@ -80,6 +102,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ inputs.service_account }}
+          project_id: ${{ inputs.registry_org }}
+
+      - run: gcloud auth configure-docker -q
 
       - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
 
