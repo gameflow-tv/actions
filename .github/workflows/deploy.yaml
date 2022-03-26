@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: development
-      url: dev.gameflow.tv
+      url: https://dev.gameflow.tv
 
     steps:
       - uses: actions/checkout@v2
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
-      url: stage.gameflow.tv
+      url: https://stage.gameflow.tv
 
     steps:
       - uses: actions/checkout@v2
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: gameflow.tv
+      url: https://gameflow.tv
 
     steps:
       - uses: actions/checkout@v2
