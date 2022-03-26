@@ -23,7 +23,7 @@ on:
         description: Registry to use for deployment
 
 jobs:
-  deploy_to_development:
+  development:
     runs-on: ubuntu-latest
     environment:
       name: development
@@ -58,7 +58,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-  deploy_to_staging:
+  staging:
     runs-on: ubuntu-latest
     environment:
       name: staging
@@ -93,7 +93,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-  deploy_to_production:
+  production:
     runs-on: ubuntu-latest
     environment:
       name: production
