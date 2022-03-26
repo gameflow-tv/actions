@@ -1,0 +1,101 @@
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+
+      registry:
+        required: false
+        type: string
+        default: eu.gcr.io
+
+      registry_org:
+        required: true
+        type: string
+
+jobs:
+  deploy_to_development:
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: dev.gameflow.tv
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          tags: |
+            type=sha
+          flavor: |
+            suffix=${{ github.sha }}-${{ env.DATES }}
+
+      - name: Deploy to development
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  deploy_to_staging:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: stage.gameflow.tv
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          tags: |
+            type=semver,pattern={{raw}}
+          flavor: |
+            suffix=${{ github.sha }}-${{ env.DATES }}
+
+      - name: Deploy to development
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  deploy_to_production:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: gameflow.tv
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          tags: |
+            type=semver,pattern={{raw}}
+          flavor: |
+            suffix=${{ github.sha }}-${{ env.DATES }}
+
+      - name: Deploy to development
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
