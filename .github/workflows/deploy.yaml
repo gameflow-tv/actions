@@ -1,12 +1,16 @@
 name: Deploy
 on:
   workflow_call:
-    inputs:
+    secrets:
+      registry_org:
+        required: true
+        description: Organization/path to use for deployment
+
       service_account:
-        type: string
         required: true
         description: Service account to use for deployment
 
+    inputs:
       image_name:
         type: string
         required: true
@@ -17,11 +21,6 @@ on:
         type: string
         default: eu.gcr.io
         description: Registry to use for deployment
-
-      registry_org:
-        required: true
-        type: string
-        description: Organization/path to use for deployment
 
 jobs:
   deploy_to_development:
@@ -35,8 +34,8 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ inputs.service_account }}
-          project_id: ${{ inputs.registry_org }}
+          service_account_key: ${{ secrets.service_account }}
+          project_id: ${{ secrets.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -46,7 +45,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
           tags: |
             type=sha
           flavor: |
@@ -70,8 +69,8 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ inputs.service_account }}
-          project_id: ${{ inputs.registry_org }}
+          service_account_key: ${{ secrets.service_account }}
+          project_id: ${{ secrets.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -81,7 +80,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{raw}}
           flavor: |
@@ -104,8 +103,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ inputs.service_account }}
-          project_id: ${{ inputs.registry_org }}
+          service_account_key: ${{ secrets.service_account }}
+          project_id: ${{ secrets.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -115,7 +114,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{raw}}
           flavor: |
