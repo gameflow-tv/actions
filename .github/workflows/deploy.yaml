@@ -1,10 +1,14 @@
-name: Deploy
+name: build and deploy
 on:
   workflow_call:
     secrets:
       service_account:
         required: true
         description: Service account to use for deployment
+
+      registry_org:
+        required: true
+        description: Registry organization to use for deployment
 
     inputs:
       image_name:
@@ -18,18 +22,15 @@ on:
         default: eu.gcr.io
         description: Registry to use for deployment
 
-      registry_org:
-        required: true
+      tag_type:
+        required: false
         type: string
-        description: Registry organization/path to use for deployment
+        default: sha
+        description: docker-metadata type to use for image tag
 
 jobs:
-  development:
-    if: github.ref == 'refs/heads/main'
+  docker:
     runs-on: ubuntu-latest
-    environment:
-      name: development
-      url: https://dev.gameflow.tv
 
     steps:
       - uses: actions/checkout@v2
@@ -37,7 +38,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ inputs.registry_org }}
+          project_id: ${{ secrets.registry_org }}
 
       - run: gcloud auth configure-docker -q
 
@@ -47,84 +48,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry }}/${{ secrets.registry_org }}/${{ inputs.image_name }}
           tags: |
-            type=sha
+            type=${{ inputs.tag_type }}
           flavor: |
             suffix=${{ github.sha }}-${{ env.DATES }}
 
-      - name: Deploy to development
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-
-  staging:
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: https://stage.gameflow.tv
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ inputs.registry_org }}
-
-      - run: gcloud auth configure-docker -q
-
-      - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
-          tags: |
-            type=semver,pattern={{raw}}
-          flavor: |
-            suffix=${{ github.sha }}-${{ env.DATES }}
-
-      - name: Deploy to development
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-
-  production:
-    if: github.event_name == 'release' && github.event.action == 'created'
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://gameflow.tv
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_key: ${{ secrets.service_account }}
-          project_id: ${{ inputs.registry_org }}
-
-      - run: gcloud auth configure-docker -q
-
-      - run: echo "DATES=$(date "+%s")" >> $GITHUB_ENV
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ inputs.registry }}/${{ inputs.registry_org }}/${{ inputs.image_name }}
-          tags: |
-            type=semver,pattern={{raw}}
-          flavor: |
-            suffix=${{ github.sha }}-${{ env.DATES }}
-
-      - name: Deploy to development
+      - name: Deploy to registry
         uses: docker/build-push-action@v2
         with:
           context: .
